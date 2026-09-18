@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Universal AI Counter",
+  "version": "1.0.0",
+  "description": "Displays token count, cache timer, and usage limits across AI platforms.",
+  "action": {
+    "default_title": "AI Counter"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://claude.ai/*",
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*",
+        "https://gemini.google.com/*",
+        "https://chat.deepseek.com/*"
+      ],
+      "css": ["styles.css"],
+      "js": [
+        "content.js"
+      ]
+    }
+  ]
+}
