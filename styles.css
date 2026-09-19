@@ -1,63 +1,70 @@
-/* Fixed bottom screen overlay bar */
-.ct-bottom-bar {
+/* Fixed bottom strip container */
+.cc-exact-bar {
   position: fixed;
   bottom: 0;
   left: 0;
   width: 100vw;
-  height: 24px;
-  background-color: #0d0d0d;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  height: 22px;
+  background-color: #121212;
+  border-top: 1px solid #242424;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 12px;
+  padding: 0 10px;
   box-sizing: border-box;
-  z-index: 999999;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  z-index: 9999999;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
   user-select: none;
-  gap: 16px;
+  gap: 12px;
 }
 
-.ct-bar-section {
+.cc-bar-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex: 1;
 }
 
-.ct-label {
-  font-size: 11px;
-  color: #a1a1aa;
-  white-space: nowrap;
-  font-weight: 400;
+.cc-left {
+  justify-content: flex-start;
 }
 
-/* Slim progress track background */
-.ct-track {
+.cc-right {
+  justify-content: flex-end;
+}
+
+/* Gray subtext styling */
+.cc-label {
+  font-size: 11px;
+  color: #888888;
+  white-space: nowrap;
+  letter-spacing: -0.2px;
+}
+
+/* Outlined progress track */
+.cc-track {
   position: relative;
   flex: 1;
-  height: 8px;
-  background-color: #1f1f23;
+  height: 10px;
+  background-color: #181818;
+  border: 1px solid #383838;
   border-radius: 4px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Vibrant blue progress bar fill */
-.ct-fill {
+/* Vibrant blue progress bar */
+.cc-fill {
   height: 100%;
   background-color: #3b82f6;
-  border-radius: 4px;
   transition: width 300ms ease;
 }
 
-/* White threshold divider line */
-.ct-marker {
+/* Vertical marker divider line */
+.cc-marker {
   position: absolute;
   top: 0;
   bottom: 0;
-  right: 15%;
-  width: 2px;
+  width: 1.5px;
   background-color: #ffffff;
-  opacity: 0.9;
+  box-shadow: 0 0 2px rgba(255, 255, 255, 0.8);
 }

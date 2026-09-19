@@ -27,22 +27,22 @@ function injectBottomBar() {
   if (!bar) {
     bar = document.createElement("div");
     bar.id = "cc-bottom-bar";
-    bar.className = "ct-bottom-bar";
+    bar.className = "cc-exact-bar";
     bar.innerHTML = `
-      <div class="ct-bar-section">
-        <span id="ct-session-label" class="ct-label">Session: 0% · resets in 4h 12m</span>
-        <div class="ct-track">
-          <div id="ct-session-fill" class="ct-fill" style="width: 0%;"></div>
-          <div class="ct-marker"></div>
+      <div class="cc-bar-item cc-left">
+        <span id="cc-session-txt" class="cc-label">Session: 86% · resets in 4h 32m</span>
+        <div class="cc-track">
+          <div id="cc-session-fill" class="cc-fill" style="width: 86%;"></div>
+          <div class="cc-marker" style="left: 18%;"></div>
         </div>
       </div>
 
-      <div class="ct-bar-section">
-        <div class="ct-track">
-          <div id="ct-weekly-fill" class="ct-fill" style="width: 0%;"></div>
-          <div class="ct-marker"></div>
+      <div class="cc-bar-item cc-right">
+        <div class="cc-track">
+          <div id="cc-weekly-fill" class="cc-fill" style="width: 6%;"></div>
+          <div class="cc-marker" style="right: 5%;"></div>
         </div>
-        <span id="ct-weekly-label" class="ct-label">Weekly: 0% · resets in 6d 18h</span>
+        <span id="cc-weekly-txt" class="cc-label">Weekly: 6% · resets in 1d 8h</span>
       </div>
     `;
 
@@ -69,15 +69,15 @@ function updateMetrics() {
   const sessionPct = Math.min(Math.round((count / 100000) * 100), 100);
   const weeklyPct = Math.min(Math.round((count / 300000) * 100), 100);
 
-  const sessionLabel = document.getElementById("ct-session-label");
-  const sessionFill = document.getElementById("ct-session-fill");
-  const weeklyLabel = document.getElementById("ct-weekly-label");
-  const weeklyFill = document.getElementById("ct-weekly-fill");
+  const sessionTxt = document.getElementById("cc-session-txt");
+  const sessionFill = document.getElementById("cc-session-fill");
+  const weeklyTxt = document.getElementById("cc-weekly-txt");
+  const weeklyFill = document.getElementById("cc-weekly-fill");
 
-  if (sessionLabel) sessionLabel.textContent = `Session: ${sessionPct}% · resets in 4h 12m`;
+  if (sessionTxt) sessionTxt.textContent = `Session: ${sessionPct}% · resets in 4h 32m`;
   if (sessionFill) sessionFill.style.width = `${sessionPct}%`;
 
-  if (weeklyLabel) weeklyLabel.textContent = `Weekly: ${weeklyPct}% · resets in 6d 18h`;
+  if (weeklyTxt) weeklyTxt.textContent = `Weekly: ${weeklyPct}% · resets in 1d 8h`;
   if (weeklyFill) weeklyFill.style.width = `${weeklyPct}%`;
 }
 
