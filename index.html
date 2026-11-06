@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Usage Tracker – see your AI chat limits at a glance</title>
+<meta name="description" content="A thin bar at the bottom of ChatGPT, Claude, Gemini and DeepSeek that shows how much of your session and weekly limit you've used. Free Chrome extension.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #eef1f5;
+    --surface: #ffffff;
+    --ink: #14181f;
+    --muted: #5b6573;
+    --line: #d5dbe3;
+    --blue: #2563eb;
+    --blue-dark: #1d4ed8;
+    --bar-bg: #121212;
+    --bar-line: #242424;
+    --bar-text: #888888;
+    --bar-fill: #3b82f6;
+    --code-bg: #e3e8ef;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #0e1116;
+      --surface: #171b22;
+      --ink: #eef1f5;
+      --muted: #9aa5b4;
+      --line: #2a313b;
+      --blue: #3b82f6;
+      --blue-dark: #60a5fa;
+      --code-bg: #232a34;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Schibsted Grotesk", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 17px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+
+  header.top { padding: 22px 0; display: flex; justify-content: space-between; align-items: center; }
+  .brand { font-weight: 800; letter-spacing: -0.02em; font-size: 18px; }
+  .top a { color: var(--muted); text-decoration: none; font-size: 15px; }
+  .top a:hover { color: var(--ink); }
+
+  .hero { padding: 40px 0 36px; }
+  h1 {
+    font-size: clamp(38px, 6.4vw, 72px);
+    line-height: 1.02;
+    letter-spacing: -0.035em;
+    font-weight: 800;
+    margin: 0 0 20px;
+    max-width: 14ch;
+  }
+  .lede { font-size: 20px; color: var(--muted); max-width: 52ch; margin: 0 0 32px; }
+
+  .cta-row { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 22px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: var(--blue); color: #fff;
+    font: inherit; font-weight: 700; font-size: 18px;
+    padding: 15px 26px; border-radius: 10px;
+    text-decoration: none; border: 0; cursor: pointer;
+    transition: background 150ms ease, transform 150ms ease;
+  }
+  .btn:hover { background: var(--blue-dark); }
+  .btn:active { transform: translateY(1px); }
+  .btn svg { width: 20px; height: 20px; }
+  .meta { color: var(--muted); font-size: 15px; }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; border-radius: 6px; }
+
+  /* Browser mock with the real bar */
+  .stage { margin: 8px 0 72px; }
+  .frame {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    height: 380px;
+  }
+  .chrome-top {
+    display: flex; align-items: center; gap: 8px;
+    padding: 12px 14px; border-bottom: 1px solid var(--line);
+  }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
+  .url {
+    margin-left: 10px; flex: 1; max-width: 360px;
+    background: var(--paper); border-radius: 6px;
+    font-size: 13px; color: var(--muted); padding: 4px 12px;
+  }
+  .chat { flex: 1; padding: 28px clamp(16px, 5vw, 56px); display: flex; flex-direction: column; gap: 14px; overflow: hidden; }
+  .msg { height: 12px; border-radius: 6px; background: var(--code-bg); }
+  .msg.me { align-self: flex-end; background: var(--blue); opacity: .85; }
+  .w90 { width: 90%; } .w75 { width: 75%; } .w60 { width: 60%; } .w40 { width: 40%; } .w30 { width: 30%; } .w20 { width: 20%; }
+
+  .bar {
+    height: 22px; background: var(--bar-bg); border-top: 1px solid var(--bar-line);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 10px; gap: 12px; user-select: none;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+  }
+  .bar .item { display: flex; align-items: center; gap: 8px; flex: 1; }
+  .bar .item.r { justify-content: flex-end; }
+  .bar .label { font-size: 11px; color: var(--bar-text); white-space: nowrap; letter-spacing: -0.2px; }
+  .bar .track {
+    position: relative; flex: 1; height: 10px; background: #181818;
+    border: 1px solid #383838; border-radius: 4px; overflow: hidden;
+  }
+  .bar .fill { height: 100%; width: 0; background: var(--bar-fill); transition: width 1400ms cubic-bezier(.2,.7,.2,1); }
+  .caption { margin-top: 14px; color: var(--muted); font-size: 15px; }
+
+  section { padding: 0 0 72px; }
+  h2 { font-size: clamp(26px, 3.4vw, 36px); letter-spacing: -0.025em; line-height: 1.1; margin: 0 0 28px; font-weight: 800; }
+
+  .steps { list-style: none; counter-reset: s; margin: 0; padding: 0; display: grid; gap: 0; border-top: 1px solid var(--line); }
+  .steps li {
+    counter-increment: s;
+    display: grid; grid-template-columns: 48px 1fr; gap: 8px 12px;
+    padding: 22px 0; border-bottom: 1px solid var(--line);
+  }
+  .steps li::before { content: counter(s); font-size: 28px; font-weight: 800; color: var(--blue); line-height: 1.1; letter-spacing: -0.03em; }
+  .steps h3 { margin: 0 0 4px; font-size: 19px; letter-spacing: -0.01em; }
+  .steps p { margin: 0; color: var(--muted); max-width: 60ch; }
+
+  .copy {
+    display: inline-flex; align-items: center; gap: 10px; margin-top: 10px;
+    background: var(--code-bg); border: 1px solid var(--line); color: var(--ink);
+    font: 500 15px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    padding: 8px 8px 8px 14px; border-radius: 8px;
+  }
+  .copy button {
+    font: 600 13px "Schibsted Grotesk", system-ui, sans-serif;
+    background: var(--surface); color: var(--ink); border: 1px solid var(--line);
+    padding: 5px 12px; border-radius: 6px; cursor: pointer;
+  }
+  .copy button:hover { border-color: var(--blue); }
+
+  .sites { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; list-style: none; }
+  .sites li { background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 8px 18px; font-weight: 500; }
+
+  .note { max-width: 62ch; color: var(--muted); }
+  .note strong { color: var(--ink); }
+
+  footer { border-top: 1px solid var(--line); padding: 28px 0 48px; color: var(--muted); font-size: 15px; display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; }
+  footer a { color: inherit; }
+
+  @media (max-width: 600px) {
+    body { font-size: 16px; }
+    .lede { font-size: 18px; }
+    .frame { height: 300px; }
+    .bar .label { font-size: 10px; }
+    .bar .label.long { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .bar .fill { transition: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <span class="brand">AI Usage Tracker</span>
+      <a id="gh-link" href="#" hidden>View on GitHub</a>
+    </header>
+
+    <main>
+      <div class="hero">
+        <h1>See your AI chat limit before you hit it.</h1>
+        <p class="lede">A thin bar at the bottom of ChatGPT, Claude, Gemini and DeepSeek shows how much of your session and weekly usage you've spent, updating as you chat.</p>
+        <div class="cta-row">
+          <a class="btn" id="download" href="downloads/ai-usage-tracker.zip" download="ai-usage-tracker.zip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 20h16"/></svg>
+            Download for Chrome
+          </a>
+          <span class="meta">Free · 3 KB · Chrome, Edge, Brave</span>
+        </div>
+      </div>
+
+      <div class="stage" aria-hidden="true">
+        <div class="frame">
+          <div class="chrome-top">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            <span class="url">claude.ai</span>
+          </div>
+          <div class="chat">
+            <div class="msg me w40"></div>
+            <div class="msg w90"></div><div class="msg w75"></div><div class="msg w60"></div>
+            <div class="msg me w30" style="margin-top:10px"></div>
+            <div class="msg w90"></div><div class="msg w40"></div>
+          </div>
+          <div class="bar">
+            <div class="item">
+              <span class="label" id="m-s">Session: 0%</span>
+              <div class="track"><div class="fill" id="f-s"></div></div>
+            </div>
+            <div class="item r">
+              <div class="track"><div class="fill" id="f-w"></div></div>
+              <span class="label" id="m-w">Weekly: 0%</span>
+            </div>
+          </div>
+        </div>
+        <p class="caption">This is the bar, shown at actual size, as it appears at the bottom of your chat.</p>
+      </div>
+
+      <section id="install">
+        <h2>Install in under a minute</h2>
+        <ol class="steps">
+          <li>
+            <div>
+              <h3>Unzip the download</h3>
+              <p>Double-click <b>ai-usage-tracker.zip</b>. You'll get a folder called <b>ai-usage-tracker</b>. Keep it somewhere you won't delete it.</p>
+            </div>
+          </li>
+          <li>
+            <div>
+              <h3>Open your extensions page</h3>
+              <p>Paste this into the address bar, then turn on <b>Developer mode</b> (top-right corner).</p>
+              <div class="copy"><span id="ext-url">chrome://extensions</span><button type="button" id="copy-btn">Copy</button></div>
+            </div>
+          </li>
+          <li>
+            <div>
+              <h3>Click “Load unpacked”</h3>
+              <p>Choose the <b>ai-usage-tracker</b> folder you unzipped in step 1.</p>
+            </div>
+          </li>
+          <li>
+            <div>
+              <h3>Open a chat</h3>
+              <p>Go to ChatGPT, Claude, Gemini or DeepSeek. The bar appears at the bottom of the page. If the chat was already open, refresh it once.</p>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>Works on</h2>
+        <ul class="sites">
+          <li>ChatGPT</li><li>Claude</li><li>Gemini</li><li>DeepSeek</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>What it does with your chats</h2>
+        <p class="note"><strong>Nothing leaves your browser.</strong> The extension reads the conversation text on the page and counts tokens on your own computer. It sends no prompts and no usage data anywhere. Percentages are an estimate based on the text in the open conversation, not an official reading from the AI provider.</p>
+      </section>
+    </main>
+
+    <footer>
+      <span>AI Usage Tracker · open source</span>
+      <a id="gh-link-2" href="#" hidden>Source code and updates</a>
+    </footer>
+  </div>
+
+<script>
+  // Hero bar: fill once on load to show what it looks like.
+  (function () {
+    var s = 62, w = 14;
+    var fs = document.getElementById('f-s'), fw = document.getElementById('f-w');
+    var ms = document.getElementById('m-s'), mw = document.getElementById('m-w');
+    function set() {
+      fs.style.width = s + '%'; fw.style.width = w + '%';
+      ms.textContent = 'Session: ' + s + '%';
+      mw.textContent = 'Weekly: ' + w + '%';
+    }
+    requestAnimationFrame(function () { requestAnimationFrame(set); });
+  })();
+
+  // Copy button for chrome://extensions
+  document.getElementById('copy-btn').addEventListener('click', function () {
+    var btn = this;
+    var text = document.getElementById('ext-url').textContent;
+    function done() { btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = 'Copy'; }, 1800); }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, function () { btn.textContent = 'Select and copy'; });
+    } else { btn.textContent = 'Select and copy'; }
+  });
+
+  // On GitHub Pages (user.github.io/repo), link back to the repo automatically.
+  (function () {
+    var m = location.hostname.match(/^([^.]+)\.github\.io$/);
+    var repo = location.pathname.split('/').filter(Boolean)[0];
+    if (!m || !repo) return;
+    var url = 'https://github.com/' + m[1] + '/' + repo;
+    ['gh-link', 'gh-link-2'].forEach(function (id) {
+      var a = document.getElementById(id);
+      a.href = url; a.hidden = false;
+    });
+  })();
+</script>
+</body>
+</html>

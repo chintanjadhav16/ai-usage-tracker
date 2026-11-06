@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Universal AI Counter",
+  "name": "AI Usage Tracker",
   "version": "1.0.0",
   "description": "Displays token count, cache timer, and usage limits across AI platforms.",
   "action": {
@@ -10,11 +10,14 @@
     {
       "matches": [
         "https://chatgpt.com/*",
+        "https://claude.ai/*",
         "https://chat.openai.com/*",
         "https://gemini.google.com/*",
         "https://chat.deepseek.com/*"
       ],
-      "css": ["styles.css"],
+      "css": [
+        "styles.css"
+      ],
       "js": [
         "content.js"
       ]
